@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}New Ingredient — Diet Planner{% endblock %}
+{% block content %}
+<h1>New Ingredient</h1>
+
+<div class="card" style="max-width:500px;margin-bottom:1.5rem">
+  <b>Look up by FDC ID</b>
+  <div style="font-size:.8rem;color:#888;margin-bottom:.4rem">
+    Find the ID at <a href="https://fdc.nal.usda.gov" target="_blank">fdc.nal.usda.gov</a> — search for a food and copy the FDC ID from the URL or details page.
+  </div>
+  <div style="display:flex;gap:.5rem;margin-top:.5rem">
+    <input id="fdc-input" type="text" placeholder="e.g. 2342797" style="flex:1">
+    <button class="btn btn-primary" onclick="lookupFdc()">Look up</button>
+  </div>
+  <div id="lookup-status" style="margin-top:.5rem;font-size:.85rem;color:#888"></div>
+</div>
+
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+<form method="post" action="{{ url_for('ingredients_save') }}" style="max-width:500px">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+    <div style="grid-column:1/-1">
+      <label>Name *</label><br>
+      <input name="name" id="f-name" value="{{ (prefill or {}).get('name','') }}" required style="width:100%">
+    </div>
+    <div style="grid-column:1/-1">
+      <label>UPC</label><br>
+      <input name="upc" id="f-upc" value="{{ (prefill or {}).get('upc','') }}" style="width:100%">
+    </div>
+    <div>
+      <label>Serving size</label><br>
+      <input name="serving_size" id="f-serving-size" type="number" step="any" value="{{ (prefill or {}).get('serving_size','') }}" style="width:100%">
+    </div>
+    <div>
+      <label>Unit</label><br>
+      <input name="serving_unit" id="f-serving-unit" value="{{ (prefill or {}).get('serving_unit','g') }}" style="width:100%">
+    </div>
+    <div><label>kcal / 100g</label><br><input name="kcal" id="f-kcal" type="number" step="any" value="{{ (prefill or {}).get('kcal','') }}" style="width:100%"></div>
+    <div><label>Protein / 100g (g)</label><br><input name="protein" id="f-protein" type="number" step="any" value="{{ (prefill or {}).get('protein','') }}" style="width:100%"></div>
+    <div><label>Fat / 100g (g)</label><br><input name="fat" id="f-fat" type="number" step="any" value="{{ (prefill or {}).get('fat','') }}" style="width:100%"></div>
+    <div><label>Carbs / 100g (g)</label><br><input name="carbs" id="f-carbs" type="number" step="any" value="{{ (prefill or {}).get('carbs','') }}" style="width:100%"></div>
+    <div><label>Fiber / 100g (g)</label><br><input name="fiber" id="f-fiber" type="number" step="any" value="{{ (prefill or {}).get('fiber','') }}" style="width:100%"></div>
+  </div>
+  <p style="margin-top:1rem;font-size:.8rem;color:#888">All nutrition values stored per 100g/ml. The FDC lookup normalizes automatically.</p>
+  <button class="btn btn-primary" type="submit" style="margin-top:.5rem">Save Ingredient</button>
+  <a href="{{ url_for('ingredients_index') }}" style="margin-left:1rem">Cancel</a>
+</form>
+
+<script>
+function set(id, val) { var el = document.getElementById(id); if (el && val != null) el.value = val; }
+
+function lookupFdc() {
+  var fdcId = document.getElementById('fdc-input').value.trim();
+  if (!fdcId) return;
+  document.getElementById('lookup-status').textContent = 'Looking up…';
+  fetch('/ingredients/lookup?fdc_id=' + encodeURIComponent(fdcId))
+    .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
+    .then(function(r) {
+      if (!r.ok) { document.getElementById('lookup-status').textContent = r.data.error || 'Not found'; return; }
+      var d = r.data;
+      set('f-name', d.name);
+      set('f-upc', d.upc);
+      set('f-serving-size', d.serving_size);
+      set('f-serving-unit', d.serving_unit);
+      set('f-kcal', d.kcal);
+      set('f-protein', d.protein);
+      set('f-fat', d.fat);
+      set('f-carbs', d.carbs);
+      set('f-fiber', d.fiber);
+      document.getElementById('lookup-status').textContent = 'Found: ' + d.name;
+    })
+    .catch(function() { document.getElementById('lookup-status').textContent = 'Request failed'; });
+}
+
+document.getElementById('fdc-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); lookupFdc(); }
+});
+</script>
+{% endblock %}

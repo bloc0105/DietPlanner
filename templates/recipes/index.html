@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Recipes — Diet Planner{% endblock %}
+{% block content %}
+<h1>Recipes</h1>
+<a href="{{ url_for('recipes_new') }}" class="btn btn-primary" style="margin-bottom:1rem">+ New Recipe</a>
+<table>
+  <thead>
+    <tr><th>Name</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for r in recipes %}
+    <tr>
+      <td>{{ r.name }}</td>
+      <td><a href="{{ url_for('recipes_edit', id=r.id) }}" class="btn btn-sm btn-primary">Edit</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="2" style="text-align:center;color:#888">No recipes yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

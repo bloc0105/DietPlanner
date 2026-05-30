@@ -1,0 +1,4 @@
+.env
+diet.db
+__pycache__/
+*.pyc

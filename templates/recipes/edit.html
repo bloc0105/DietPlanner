@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}{{ recipe.name }} — Diet Planner{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:baseline;gap:1rem;margin-bottom:.5rem">
+  <h1 style="margin:0">{{ recipe.name }}</h1>
+  <a href="{{ url_for('recipes_index') }}" style="font-size:.85rem">← Recipes</a>
+</div>
+
+<!-- Rename -->
+<form method="post" style="display:flex;gap:.5rem;margin-bottom:1.5rem;max-width:400px">
+  <input name="name" placeholder="Rename recipe…" style="flex:1">
+  <button class="btn btn-primary btn-sm" type="submit">Rename</button>
+</form>
+
+<!-- Macro totals -->
+<div class="card">
+  <b>Recipe totals</b>
+  <div class="macro-row" style="margin-top:.5rem">
+    <div class="macro-item"><label>kcal</label><div>{{ totals.kcal }}</div></div>
+    <div class="macro-item"><label>Protein</label><div>{{ totals.protein }}g</div></div>
+    <div class="macro-item"><label>Fat</label><div>{{ totals.fat }}g</div></div>
+    <div class="macro-item"><label>Carbs</label><div>{{ totals.carbs }}g</div></div>
+    <div class="macro-item"><label>Fiber</label><div>{{ totals.fiber }}g</div></div>
+  </div>
+</div>
+
+<!-- Ingredients in recipe -->
+<h2>Ingredients</h2>
+{% if ri_rows %}
+<table style="max-width:800px;margin-bottom:1rem">
+  <thead>
+    <tr><th>Ingredient</th><th>Servings</th><th>kcal</th><th>Protein</th><th>Fat</th><th>Carbs</th><th>Fiber</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for ri in ri_rows %}
+    {% set ps = namespace(kcal=(ri.kcal or 0)*( ri.serving_size or 100)/100, protein=(ri.protein or 0)*(ri.serving_size or 100)/100, fat=(ri.fat or 0)*(ri.serving_size or 100)/100, carbs=(ri.carbs or 0)*(ri.serving_size or 100)/100, fiber=(ri.fiber or 0)*(ri.serving_size or 100)/100) %}
+    <tr>
+      <td>{{ ri.name }}<br><small style="color:#888">{{ ri.serving_size }} {{ ri.serving_unit }} / serving</small></td>
+      <td>
+        <form method="post" action="{{ url_for('recipe_ingredient_servings', id=ri.id) }}" style="display:flex;gap:.25rem">
+          <input name="servings" type="number" step="0.25" min="0.25" value="{{ ri.servings }}" style="width:5rem">
+          <button class="btn btn-sm btn-primary" type="submit">✓</button>
+        </form>
+      </td>
+      <td>{{ '%.1f'|format(ps.kcal * ri.servings) }}</td>
+      <td>{{ '%.1f'|format(ps.protein * ri.servings) }}g</td>
+      <td>{{ '%.1f'|format(ps.fat * ri.servings) }}g</td>
+      <td>{{ '%.1f'|format(ps.carbs * ri.servings) }}g</td>
+      <td>{{ '%.1f'|format(ps.fiber * ri.servings) }}g</td>
+      <td>
+        <form method="post" action="{{ url_for('recipe_ingredient_delete', id=ri.id) }}">
+          <button class="btn btn-sm btn-danger" type="submit">×</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p style="color:#888">No ingredients added yet.</p>
+{% endif %}
+
+<!-- Add ingredient -->
+<h3>Add ingredient</h3>
+<form method="post" action="{{ url_for('recipe_add_ingredient', id=recipe.id) }}" style="display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap;max-width:600px">
+  <div>
+    <label style="font-size:.85rem">Ingredient</label><br>
+    <select name="ingredient_id" required style="min-width:200px">
+      <option value="">— select —</option>
+      {% for i in all_ingredients %}
+      <option value="{{ i.id }}">{{ i.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label style="font-size:.85rem">Servings</label><br>
+    <input name="servings" type="number" step="0.25" min="0.25" value="1" style="width:5rem">
+  </div>
+  <button class="btn btn-primary" type="submit">Add</button>
+</form>
+{% endblock %}

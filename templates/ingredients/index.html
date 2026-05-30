@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Ingredients — Diet Planner{% endblock %}
+{% block content %}
+<h1>Ingredients</h1>
+<a href="{{ url_for('ingredients_new') }}" class="btn btn-primary" style="margin-bottom:1rem">+ Add Ingredient</a>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th><th>UPC</th><th>Serving</th>
+      <th>kcal/100g</th><th>Protein</th><th>Fat</th><th>Carbs</th><th>Fiber</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for i in ingredients %}
+    <tr>
+      <td>{{ i.name }}</td>
+      <td>{{ i.upc or '—' }}</td>
+      <td>{{ i.serving_size }} {{ i.serving_unit }}</td>
+      <td>{{ '%.1f'|format(i.kcal or 0) }}</td>
+      <td>{{ '%.1f'|format(i.protein or 0) }}g</td>
+      <td>{{ '%.1f'|format(i.fat or 0) }}g</td>
+      <td>{{ '%.1f'|format(i.carbs or 0) }}g</td>
+      <td>{{ '%.1f'|format(i.fiber or 0) }}g</td>
+      <td><a href="{{ url_for('ingredients_edit', id=i.id) }}" class="btn btn-sm btn-primary">Edit</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="9" style="text-align:center;color:#888">No ingredients yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
