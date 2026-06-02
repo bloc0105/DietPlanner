@@ -290,6 +290,14 @@ def plan_delete(id):
     return redirect(url_for('plan_view'))
 
 
+@app.route('/plan/clear', methods=['POST'])
+def plan_clear():
+    db = get_db()
+    db.execute('DELETE FROM plan')
+    db.commit()
+    return redirect(url_for('plan_view'))
+
+
 @app.route('/plan/print')
 def plan_print():
     db = get_db()
